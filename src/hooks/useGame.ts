@@ -166,7 +166,7 @@ export function useGame(playerName: string, praise: string[]) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [state.phase, state.timeLeft === null])
+  }, [state.phase, state.timeLeft])
 
   // ── Handle timeout (timeLeft reaches 0) ───────────────────────────────
   useEffect(() => {
