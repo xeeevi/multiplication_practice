@@ -84,32 +84,40 @@ describe('getAllErrorStats migration', () => {
 
 describe('saveErrorStat', () => {
   it('increments attempts and errors correctly', () => {
-    saveErrorStat('maria', 7, 8, false)
-    saveErrorStat('maria', 7, 8, false)
-    saveErrorStat('maria', 7, 8, true)
+    saveErrorStat('maria', '7x8', false)
+    saveErrorStat('maria', '7x8', false)
+    saveErrorStat('maria', '7x8', true)
 
     const stats = getErrorStats('maria')
     expect(stats['7x8']).toEqual({ attempts: 3, errors: 2 })
   })
 
   it('isolates users — maria does not affect pau', () => {
-    saveErrorStat('maria', 7, 8, false)
-    saveErrorStat('pau',   6, 9, false)
+    saveErrorStat('maria', '7x8', false)
+    saveErrorStat('pau',   '6x9', false)
 
     expect(getErrorStats('maria')['6x9']).toBeUndefined()
     expect(getErrorStats('pau')['7x8']).toBeUndefined()
   })
 
   it('is case-insensitive ("Maria" and "maria" share the same bucket)', () => {
-    saveErrorStat('Maria', 7, 8, false)
-    saveErrorStat('maria', 7, 8, false)
+    saveErrorStat('Maria', '7x8', false)
+    saveErrorStat('maria', '7x8', false)
     expect(getErrorStats('MARIA')['7x8']?.attempts).toBe(2)
   })
 
   it('blank / whitespace name falls into _default bucket', () => {
-    saveErrorStat('', 3, 4, false)
+    saveErrorStat('', '3x4', false)
     const all = getAllErrorStats()
     expect(all['_default']?.['3x4']).toBeDefined()
+  })
+
+  it('supports ops-style keys with a custom storage key', () => {
+    saveErrorStat('maria', '14+7', false, 'ops_practice_errors')
+    const stats = getErrorStats('maria', 'ops_practice_errors')
+    expect(stats['14+7']).toEqual({ attempts: 1, errors: 1 })
+    // mult storage unaffected
+    expect(getErrorStats('maria')['14+7']).toBeUndefined()
   })
 })
 
@@ -122,16 +130,16 @@ describe('getWeakProblems', () => {
 
   it('only returns pairs with ≥3 attempts AND >40% error rate', () => {
     // 5/5 errors → 100% — should appear
-    saveErrorStat('test', 7, 8, false)
-    saveErrorStat('test', 7, 8, false)
-    saveErrorStat('test', 7, 8, false)
-    saveErrorStat('test', 7, 8, false)
-    saveErrorStat('test', 7, 8, false)
+    saveErrorStat('test', '7x8', false)
+    saveErrorStat('test', '7x8', false)
+    saveErrorStat('test', '7x8', false)
+    saveErrorStat('test', '7x8', false)
+    saveErrorStat('test', '7x8', false)
 
     // 1/3 errors → 33% — should NOT appear
-    saveErrorStat('test', 6, 9, false)
-    saveErrorStat('test', 6, 9, true)
-    saveErrorStat('test', 6, 9, true)
+    saveErrorStat('test', '6x9', false)
+    saveErrorStat('test', '6x9', true)
+    saveErrorStat('test', '6x9', true)
 
     const weak = getWeakProblems('test')
     expect(weak.some((w) => w.a === 7 && w.b === 8)).toBe(true)
@@ -139,8 +147,8 @@ describe('getWeakProblems', () => {
   })
 
   it('requires at least 3 attempts (2 is not enough even at 100% error)', () => {
-    saveErrorStat('test2', 9, 9, false)
-    saveErrorStat('test2', 9, 9, false)
+    saveErrorStat('test2', '9x9', false)
+    saveErrorStat('test2', '9x9', false)
     expect(getWeakProblems('test2')).toHaveLength(0)
   })
 })

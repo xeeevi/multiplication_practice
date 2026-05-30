@@ -54,7 +54,7 @@ export function generate(
   for (const a of selectedTables) {
     for (let b = 1; b <= 10; b++) {
       const key = `${a}x${b}`
-      pool.push({ a, b, answer: a * b, key, weight: calcWeight(userStats, key) })
+      pool.push({ a, b, answer: a * b, key, weight: calcWeight(userStats, key), operation: '×' })
     }
   }
 

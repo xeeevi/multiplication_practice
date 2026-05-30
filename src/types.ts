@@ -8,15 +8,21 @@ export type Mode = 'free' | '5' | '10' | '20'
 
 export type Screen = 'setup' | 'game' | 'results' | 'leaderboard'
 
-/** A single multiplication question with pre-computed adaptive weight. */
+export type Operation = '+' | '-' | '÷'
+
+export type GameType = 'mult' | 'ops'
+
+/** A single question with pre-computed adaptive weight. */
 export interface Question {
   a: number
   b: number
   answer: number
-  /** Composite key used for tracking: "AxB" */
+  /** Composite key used for tracking, e.g. "7x8", "14+7", "6÷2" */
   key: string
   /** Sampling weight in [1, 3]; higher = more likely to appear this round. */
   weight: number
+  /** Symbol to display between operands: '×', '+', '−', '÷' */
+  operation: string
 }
 
 /** One saved high-score entry (persisted to localStorage). */
@@ -37,7 +43,7 @@ export interface PairStats {
   errors: number
 }
 
-/** All problem stats for one user: "AxB" → {attempts, errors} */
+/** All problem stats for one user: key → {attempts, errors} */
 export type UserStats = Record<string, PairStats>
 
 /** Top-level error-stats structure partitioned by user key. */

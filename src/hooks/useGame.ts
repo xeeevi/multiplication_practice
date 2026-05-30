@@ -1,8 +1,9 @@
 import { useReducer, useEffect, useRef, useCallback } from 'react'
-import type { Mode, Question, GameResult } from '../types'
+import type { Mode, Question, GameResult, GameType, Operation } from '../types'
 import { generate } from '../lib/game/questionGenerator'
+import { generateOps } from '../lib/game/opsQuestionGenerator'
 import { calcPoints, getResultsTitleKey } from '../lib/game/scoring'
-import { MODE_SECONDS } from '../lib/game/constants'
+import { MODE_SECONDS, STORAGE_KEYS } from '../lib/game/constants'
 import { saveErrorStat, getErrorStats } from '../lib/storage/errorStats'
 import { saveScore } from '../lib/storage/scores'
 
@@ -24,6 +25,7 @@ export interface FeedbackInfo {
 
 interface GameState {
   phase: GamePhase
+  gameType: GameType
   mode: Mode
   tables: number[]
   questions: Question[]
@@ -43,7 +45,7 @@ interface GameState {
 // ---------------------------------------------------------------------------
 
 type Action =
-  | { type: 'START'; tables: number[]; mode: Mode; questions: Question[] }
+  | { type: 'START'; gameType: GameType; tables: number[]; mode: Mode; questions: Question[] }
   | { type: 'SUBMIT_CORRECT'; points: number; feedback: FeedbackInfo }
   | { type: 'SUBMIT_WRONG'; feedback: FeedbackInfo }
   | { type: 'TIMEOUT'; feedback: FeedbackInfo }
@@ -58,6 +60,7 @@ type Action =
 
 const INITIAL_STATE: GameState = {
   phase: 'idle',
+  gameType: 'mult',
   mode: 'free',
   tables: [],
   questions: [],
@@ -82,6 +85,7 @@ function reducer(state: GameState, action: Action): GameState {
       return {
         ...INITIAL_STATE,
         phase: 'answering',
+        gameType: action.gameType,
         mode: action.mode,
         tables: action.tables,
         questions: action.questions,
@@ -149,9 +153,17 @@ const TOTAL_QUESTIONS = 20
 const FEEDBACK_CORRECT_DELAY = 600
 const FEEDBACK_WRONG_DELAY = 1500
 
+export type StartConfig =
+  | { type: 'mult'; tables: number[]; mode: Mode }
+  | { type: 'ops'; operations: Operation[]; mode: Mode }
+
 export function useGame(playerName: string, praise: string[]) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Storage keys depend on which game is active
+  const errKey = state.gameType === 'ops' ? STORAGE_KEYS.opsErrors : STORAGE_KEYS.errors
+  const scoreKey = state.gameType === 'ops' ? STORAGE_KEYS.opsScores : STORAGE_KEYS.scores
 
   // ── Timer ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -173,12 +185,16 @@ export function useGame(playerName: string, praise: string[]) {
     if (state.phase !== 'answering' || state.timeLeft !== 0) return
     const q = state.questions[state.questionIndex]
     if (!q) return
-    saveErrorStat(playerName, q.a, q.b, false)
+    saveErrorStat(playerName, q.key, false, errKey)
     dispatch({
       type: 'TIMEOUT',
-      feedback: { correct: false, message: `${q.a} × ${q.b} = ${q.answer}`, pointsAwarded: 0 },
+      feedback: {
+        correct: false,
+        message: `${q.a} ${q.operation} ${q.b} = ${q.answer}`,
+        pointsAwarded: 0,
+      },
     })
-  }, [state.timeLeft, state.phase, state.questionIndex, state.questions, playerName])
+  }, [state.timeLeft, state.phase, state.questionIndex, state.questions, playerName, errKey])
 
   // ── Auto-advance after feedback ────────────────────────────────────────
   useEffect(() => {
@@ -187,7 +203,6 @@ export function useGame(playerName: string, praise: string[]) {
     const id = setTimeout(() => {
       const nextIndex = state.questionIndex + 1
       if (nextIndex >= TOTAL_QUESTIONS) {
-        // correct and wrong counts are already updated by the action
         const isRecord = saveScore(
           playerName,
           state.score,
@@ -196,6 +211,7 @@ export function useGame(playerName: string, praise: string[]) {
           state.bestStreak,
           state.tables,
           state.mode,
+          scoreKey,
         )
         dispatch({
           type: 'FINISH',
@@ -224,15 +240,28 @@ export function useGame(playerName: string, praise: string[]) {
     state.tables,
     state.mode,
     playerName,
+    scoreKey,
   ])
 
   // ── Public API ─────────────────────────────────────────────────────────
 
   const start = useCallback(
-    (tables: number[], mode: Mode) => {
-      const userStats = getErrorStats(playerName)
-      const questions = generate(tables, userStats)
-      dispatch({ type: 'START', tables, mode, questions })
+    (config: StartConfig) => {
+      const userStats =
+        config.type === 'ops'
+          ? getErrorStats(playerName, STORAGE_KEYS.opsErrors)
+          : getErrorStats(playerName)
+      const questions =
+        config.type === 'ops'
+          ? generateOps(config.operations, userStats)
+          : generate(config.tables, userStats)
+      dispatch({
+        type: 'START',
+        gameType: config.type,
+        tables: config.type === 'mult' ? config.tables : [],
+        mode: config.mode,
+        questions,
+      })
     },
     [playerName],
   )
@@ -243,7 +272,7 @@ export function useGame(playerName: string, praise: string[]) {
       const q = state.questions[state.questionIndex]
       if (!q) return
       const correct = value === q.answer
-      saveErrorStat(playerName, q.a, q.b, correct)
+      saveErrorStat(playerName, q.key, correct, errKey)
       if (correct) {
         const points = calcPoints(state.streak, state.mode)
         const p = praise[Math.floor(Math.random() * praise.length)] ?? '🎉'
@@ -255,11 +284,15 @@ export function useGame(playerName: string, praise: string[]) {
       } else {
         dispatch({
           type: 'SUBMIT_WRONG',
-          feedback: { correct: false, message: `${q.a} × ${q.b} = ${q.answer}`, pointsAwarded: 0 },
+          feedback: {
+            correct: false,
+            message: `${q.a} ${q.operation} ${q.b} = ${q.answer}`,
+            pointsAwarded: 0,
+          },
         })
       }
     },
-    [state.phase, state.questions, state.questionIndex, state.streak, state.mode, playerName, praise],
+    [state.phase, state.questions, state.questionIndex, state.streak, state.mode, playerName, praise, errKey],
   )
 
   const quit = useCallback(() => dispatch({ type: 'QUIT' }), [])
@@ -272,6 +305,7 @@ export function useGame(playerName: string, praise: string[]) {
 
   return {
     phase: state.phase,
+    gameType: state.gameType,
     mode: state.mode,
     score: state.score,
     streak: state.streak,

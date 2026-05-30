@@ -62,6 +62,15 @@ const en: Translations = {
   clear_confirm: 'Are you sure you want to clear all scores?',
   default_name: 'Player',
   question_x_of_y: (x, tot) => `Question ${x} of ${tot}`,
+  game_tab_mult: '× Multiply',
+  game_tab_ops: '+ − ÷ Operations',
+  ops_q: 'Which operations?',
+  op_add: 'Addition',
+  op_sub: 'Subtraction',
+  op_div: 'Division',
+  op_add_hint: 'result ≤ 20',
+  op_sub_hint: 'no negatives',
+  op_div_hint: 'whole numbers',
 }
 
 export default en

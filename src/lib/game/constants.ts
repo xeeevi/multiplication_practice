@@ -9,6 +9,8 @@ export const STORAGE_KEYS = {
   errors:     'mult_practice_errors',
   playerName: 'mult_player_name',
   lang:       'mult_lang',
+  opsScores:  'ops_practice_scores',
+  opsErrors:  'ops_practice_errors',
 } as const
 
 /** Seconds allowed per question for each timed mode (null = unlimited). */

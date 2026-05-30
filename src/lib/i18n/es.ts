@@ -62,6 +62,15 @@ const es: Translations = {
   clear_confirm: '¿Seguro que quieres borrar todas las puntuaciones?',
   default_name: 'Jugador',
   question_x_of_y: (x, tot) => `Pregunta ${x} de ${tot}`,
+  game_tab_mult: '× Multiplicar',
+  game_tab_ops: '+ − ÷ Operaciones',
+  ops_q: '¿Qué operaciones?',
+  op_add: 'Suma',
+  op_sub: 'Resta',
+  op_div: 'División',
+  op_add_hint: 'resultado ≤ 20',
+  op_sub_hint: 'sin negativos',
+  op_div_hint: 'resultado entero',
 }
 
 export default es

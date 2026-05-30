@@ -3,9 +3,9 @@ import { STORAGE_KEYS } from '../game/constants'
 
 const MAX_SCORES = 50
 
-export function getScores(): ScoreEntry[] {
+export function getScores(storageKey: string = STORAGE_KEYS.scores): ScoreEntry[] {
   try {
-    return (JSON.parse(localStorage.getItem(STORAGE_KEYS.scores) ?? 'null') ?? []) as ScoreEntry[]
+    return (JSON.parse(localStorage.getItem(storageKey) ?? 'null') ?? []) as ScoreEntry[]
   } catch {
     return []
   }
@@ -23,6 +23,7 @@ export function saveScore(
   bestStreak: number,
   tables: number[],
   mode: Mode,
+  storageKey: string = STORAGE_KEYS.scores,
 ): boolean {
   const entry: ScoreEntry = {
     name,
@@ -34,17 +35,17 @@ export function saveScore(
     mode,
     date: new Date().toISOString(),
   }
-  const scores = getScores()
+  const scores = getScores(storageKey)
   const isRecord =
     score > 0 && (scores.length === 0 || score > Math.max(...scores.map((s) => s.score)))
   scores.push(entry)
   scores.sort((a, b) => b.score - a.score)
-  localStorage.setItem(STORAGE_KEYS.scores, JSON.stringify(scores.slice(0, MAX_SCORES)))
+  localStorage.setItem(storageKey, JSON.stringify(scores.slice(0, MAX_SCORES)))
   return isRecord
 }
 
-export function clearScores(): void {
-  localStorage.removeItem(STORAGE_KEYS.scores)
+export function clearScores(storageKey: string = STORAGE_KEYS.scores): void {
+  localStorage.removeItem(storageKey)
 }
 
 export function filterScores(scores: ScoreEntry[], mode: Mode | 'all'): ScoreEntry[] {

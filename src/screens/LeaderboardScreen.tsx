@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import type { Mode } from '../types'
+import type { Mode, GameType } from '../types'
 import { useLanguage } from '../hooks/useLanguage'
 import { getScores, clearScores, filterScores } from '../lib/storage/scores'
+import { STORAGE_KEYS } from '../lib/game/constants'
 
 interface Props {
   onBack: () => void
@@ -9,7 +10,7 @@ interface Props {
 
 type Filter = Mode | 'all'
 
-const TABS: { key: Filter; labelKey: string }[] = [
+const MODE_TABS: { key: Filter; labelKey: string }[] = [
   { key: 'all',  labelKey: 'lb_tab_all'  },
   { key: 'free', labelKey: 'lb_tab_free' },
   { key: '5',    labelKey: 'lb_tab_5'    },
@@ -21,14 +22,22 @@ const MEDALS = ['🥇', '🥈', '🥉']
 
 export function LeaderboardScreen({ onBack }: Props) {
   const { tr } = useLanguage()
-  const [filter, setFilter] = useState<Filter>('all')
-  const [scores, setScores] = useState(() => getScores())
+  const [gameTab, setGameTab] = useState<GameType>('mult')
+  const [filter, setFilter]   = useState<Filter>('all')
 
-  const visible = filterScores(scores, filter).slice(0, 20)
+  const storageKey = gameTab === 'ops' ? STORAGE_KEYS.opsScores : STORAGE_KEYS.scores
+  const [scores, setScores]   = useState(() => getScores(storageKey))
+
+  // Reload scores when game tab or storage key changes
+  function switchGameTab(tab: GameType) {
+    setGameTab(tab)
+    setFilter('all')
+    setScores(getScores(tab === 'ops' ? STORAGE_KEYS.opsScores : STORAGE_KEYS.scores))
+  }
 
   function handleClear() {
     if (window.confirm(tr.clear_confirm)) {
-      clearScores()
+      clearScores(storageKey)
       setScores([])
     }
   }
@@ -37,15 +46,39 @@ export function LeaderboardScreen({ onBack }: Props) {
     return mode === 'free' ? tr.lb_mode_free : tr.lb_mode_timed(mode)
   }
 
+  const visible = filterScores(scores, filter).slice(0, 20)
+
   return (
     <div>
-      <p className="mb-[18px] text-center text-[1.6em] font-black text-school-text">
+      <p className="mb-4 text-center text-[1.6em] font-black text-school-text">
         {tr.lb_title}
       </p>
 
-      {/* Filter tabs */}
+      {/* Game-type tabs */}
+      <div className="mb-4 flex gap-2">
+        {([
+          { key: 'mult' as GameType, label: tr.game_tab_mult },
+          { key: 'ops'  as GameType, label: tr.game_tab_ops  },
+        ]).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => switchGameTab(key)}
+            className={[
+              'flex-1 rounded-[14px] border-2 border-b-[4px] py-2.5 font-sans text-[0.9em] font-bold',
+              'transition-all touch-manipulation active:translate-y-[3px] active:border-b',
+              gameTab === key
+                ? 'border-school-blue-sh bg-school-blue text-white'
+                : 'border-school-border border-b-[#c8bfb5] bg-school-card text-school-soft hover:border-school-blue hover:text-school-blue',
+            ].join(' ')}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mode filter tabs */}
       <div className="mb-4 flex flex-wrap justify-center gap-2">
-        {TABS.map(({ key, labelKey }) => (
+        {MODE_TABS.map(({ key, labelKey }) => (
           <button
             key={key}
             onClick={() => setFilter(key)}

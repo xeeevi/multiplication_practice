@@ -58,4 +58,15 @@ export interface Translations {
   clear_confirm: string
   default_name: string
   question_x_of_y: (x: number, total: number) => string
+  // Game-type tab switcher
+  game_tab_mult: string
+  game_tab_ops: string
+  // Operations game setup
+  ops_q: string
+  op_add: string
+  op_sub: string
+  op_div: string
+  op_add_hint: string
+  op_sub_hint: string
+  op_div_hint: string
 }

@@ -62,6 +62,15 @@ const ca: Translations = {
   clear_confirm: 'Segur que vols esborrar totes les puntuacions?',
   default_name: 'Jugador',
   question_x_of_y: (x, tot) => `Pregunta ${x} de ${tot}`,
+  game_tab_mult: '× Multiplicar',
+  game_tab_ops: '+ − ÷ Operacions',
+  ops_q: 'Quines operacions?',
+  op_add: 'Suma',
+  op_sub: 'Resta',
+  op_div: 'Divisió',
+  op_add_hint: 'resultat ≤ 20',
+  op_sub_hint: 'sense negatius',
+  op_div_hint: 'resultat enter',
 }
 
 export default ca
