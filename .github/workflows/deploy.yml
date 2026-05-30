@@ -1,12 +1,7 @@
 name: Build, test & deploy to GitHub Pages
 
 on:
-  push:
-    # Only run on the feature branch for now.
-    # main is intentionally excluded — Pages is served from the stable branch.
-    branches: [feat/react-vite-restructure]
-  pull_request:
-    branches: [main]
+  workflow_dispatch: # disabled — Pages is now served from the committed dist/ folder
 
 # Allow only one concurrent deployment; cancel in-progress runs
 concurrency:
