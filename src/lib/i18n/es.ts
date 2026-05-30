@@ -62,7 +62,7 @@ const es: Translations = {
   clear_confirm: '¿Seguro que quieres borrar todas las puntuaciones?',
   default_name: 'Jugador',
   question_x_of_y: (x, tot) => `Pregunta ${x} de ${tot}`,
-  game_tab_mult: '× Multiplicar',
+  game_tab_mult: '× Tablas de Multiplicar',
   game_tab_ops: '× + − ÷ Mixto',
   ops_q: '¿Qué operaciones?',
   op_mult: 'Multiplicar',
@@ -73,6 +73,10 @@ const es: Translations = {
   op_add_hint: 'resultado ≤ 20',
   op_sub_hint: 'sin negativos',
   op_div_hint: 'resultado entero',
+  lb_tab_report: '📊 Informe',
+  report_no_users: 'Todavía no hay suficientes datos para ningún usuario.',
+  report_attempts: (n) => `${n} intentos`,
+  report_weak_title: 'Puntos débiles:',
 }
 
 export default es

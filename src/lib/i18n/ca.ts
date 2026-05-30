@@ -62,7 +62,7 @@ const ca: Translations = {
   clear_confirm: 'Segur que vols esborrar totes les puntuacions?',
   default_name: 'Jugador',
   question_x_of_y: (x, tot) => `Pregunta ${x} de ${tot}`,
-  game_tab_mult: '× Multiplicar',
+  game_tab_mult: '× Taules de Multiplicar',
   game_tab_ops: '× + − ÷ Mixt',
   ops_q: 'Quines operacions?',
   op_mult: 'Multiplicar',
@@ -73,6 +73,10 @@ const ca: Translations = {
   op_add_hint: 'resultat ≤ 20',
   op_sub_hint: 'sense negatius',
   op_div_hint: 'resultat enter',
+  lb_tab_report: '📊 Informe',
+  report_no_users: 'Encara no hi ha prou dades per a cap usuari.',
+  report_attempts: (n) => `${n} intents`,
+  report_weak_title: 'Punts febles:',
 }
 
 export default ca

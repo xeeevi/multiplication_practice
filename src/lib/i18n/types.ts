@@ -71,4 +71,9 @@ export interface Translations {
   op_add_hint: string
   op_sub_hint: string
   op_div_hint: string
+  // Leaderboard report tab
+  lb_tab_report: string
+  report_no_users: string
+  report_attempts: (n: number) => string
+  report_weak_title: string
 }
