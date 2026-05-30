@@ -24,10 +24,10 @@ export function GameScreen({ game, onQuit }: Props) {
   const isBusy   = game.phase === 'feedback'
   const isTimed  = game.timeLeft !== null
 
-  // Focus text input on desktop when question changes
+  // Reset pad and focus input on each new question
   useEffect(() => {
-    if (!isCoarse) inputRef.current?.focus()
     setPadValue('')
+    if (!isCoarse) inputRef.current?.focus()
   }, [game.questionIndex, isCoarse])
 
   // Flash card on correct answer
@@ -51,11 +51,10 @@ export function GameScreen({ game, onQuit }: Props) {
   })
 
   function handleSubmit() {
-    const val = isCoarse ? parseInt(padValue) : parseInt(inputRef.current?.value ?? '')
+    const val = parseInt(padValue)
     if (isNaN(val)) return
     game.submit(val)
     setPadValue('')
-    if (inputRef.current) inputRef.current.value = ''
   }
 
   function handlePadChange(v: string) {
@@ -128,16 +127,20 @@ export function GameScreen({ game, onQuit }: Props) {
           ?
         </div>
 
-        {/* Answer input (always rendered; readonly on touch to suppress native keyboard) */}
+        {/* Answer input — always controlled by padValue so numpad + keyboard share one source */}
         <input
           ref={inputRef}
-          type="number"
+          type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           readOnly={isCoarse}
-          value={isCoarse ? padValue : undefined}
+          value={padValue}
           className={inputClass}
           autoComplete="off"
-          onChange={isCoarse ? undefined : () => {}}
+          onChange={(e) => {
+            const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+            setPadValue(v)
+          }}
         />
 
         {/* Feedback */}
