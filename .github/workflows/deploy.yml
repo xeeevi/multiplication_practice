@@ -1,7 +1,9 @@
 name: Build, test & deploy to GitHub Pages
 
 on:
-  workflow_dispatch: # disabled — Pages is now served from the committed dist/ folder
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 # Allow only one concurrent deployment; cancel in-progress runs
 concurrency:
