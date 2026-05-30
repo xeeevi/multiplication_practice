@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Custom keyframe for confetti (CSS var-driven) ──────────────────────── */
+@layer utilities {
+  @keyframes confettiFall {
+    to {
+      top: 110vh;
+      transform: rotate(var(--rot)) translateX(var(--drift));
+    }
+  }
+
+  .animate-confettiFall {
+    animation: confettiFall var(--fall-dur, 2s) linear forwards;
+  }
+}
+
+/* ─── Spinner/number input — remove browser arrows ──────────────────────── */
+@layer base {
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}

@@ -1,33 +1,64 @@
-# Practica les Taules de Multiplicar!
+# Practica les Taules de Multiplicar 🔢
 
-App web per practicar les taules de multiplicar, pensada per a nens i nenes de primaria.
-Disponible en **català**, **castellà** i **anglès** (UK).
+Multiplication tables practice app for primary-school children. Friendly school theme, on-screen number pad, adaptive question selection, and support for **Catalan**, **Spanish**, and **UK English**.
 
-## Com funciona
+[![Build & Deploy](https://github.com/YOUR_USER/YOUR_REPO/actions/workflows/deploy.yml/badge.svg)](https://github.com/YOUR_USER/YOUR_REPO/actions/workflows/deploy.yml)
 
-1. Tria l'idioma (CA / ES / EN) a dalt a la dreta
-2. Escriu el teu nom
-3. Selecciona quines taules vols practicar (de l'1 al 10)
-4. Tria un mode:
-   - **Sense límit**: 20 preguntes, sense pressa
-   - **5 segons**: màxima pressió, punts x3
-   - **10 segons**: punts x2
-   - **20 segons**: punts x1.5
-5. Respon les multiplicacions amb el teclat numèric de pantalla (o el teclat físic) i prem **Comprova**!
+## Features
 
-## Puntuació
+- **Adaptive questions** — facts you get wrong appear more often in the next round
+- **Per-user stats** — multiple children can share one device; stats are partitioned by name
+- **On-screen number pad** — works on tablets and phones without a physical keyboard
+- **4 modes** — free practice, 5 s, 10 s, 20 s (with score multipliers)
+- **Leaderboard** — top 50 scores stored locally (localStorage — no server)
+- **Three languages** — CA / ES / EN, switchable at any time
 
-- 10 punts base per resposta correcta
-- Bonus per ratxa de respostes seguides correctes (fins a +20 punts extra)
-- Multiplicador segons el mode de temps triat
-- Les puntuacions es guarden al navegador (localStorage)
+## Using the app
 
-## Com obrir-ho
+Visit the live site: **https://YOUR_USER.github.io/YOUR_REPO/**
 
-Només cal obrir el fitxer `index.html` amb qualsevol navegador — o visitar la pàgina de GitHub Pages. No cal servidor ni instal·lació.
+1. Choose your language (top-right)
+2. Enter your name
+3. Pick the tables you want to practise
+4. Choose a time mode and tap **Comencem!**
 
-## Tecnologia
+## Development
 
-- HTML + CSS + JavaScript (tot en un sol fitxer)
-- Sense dependències ni frameworks
-- Dades guardades al localStorage del navegador
+> See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm test           # run all unit tests
+npm run build      # production build → dist/
+```
+
+### Required one-time GitHub Pages setup
+
+In your repo: **Settings → Pages → Source → GitHub Actions**. The `deploy.yml` workflow then builds and deploys on every push to `main` (free on public repos).
+
+## Tech stack
+
+| | |
+|---|---|
+| Framework | React 18 + TypeScript |
+| Build | Vite |
+| Styling | Tailwind CSS v3 |
+| Tests | Vitest + React Testing Library |
+| Deploy | GitHub Actions → GitHub Pages |
+
+## Project structure
+
+```
+src/
+  lib/game/        Question generation, scoring, constants
+  lib/storage/     localStorage helpers (scores, stats, name, language)
+  lib/i18n/        Translation objects — ca.ts, es.ts, en.ts
+  hooks/           useGame (reducer), useLanguage (context), useCoarsePointer
+  screens/         SetupScreen, GameScreen, ResultsScreen, LeaderboardScreen
+  components/      NumberPad, ProgressBar, Confetti, LanguageBar, BackgroundDeco
+```
+
+## License
+
+[MIT](LICENSE)
