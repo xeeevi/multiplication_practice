@@ -58,4 +58,23 @@ export interface Translations {
   clear_confirm: string
   default_name: string
   question_x_of_y: (x: number, total: number) => string
+  // Game-type tab switcher
+  game_tab_mult: string
+  game_tab_ops: string
+  // Operations game setup
+  ops_q: string
+  op_mult: string
+  op_add: string
+  op_sub: string
+  op_div: string
+  op_mult_hint: string
+  op_add_hint: string
+  op_sub_hint: string
+  op_div_hint: string
+  // Leaderboard report tab
+  lb_tab_report: string
+  report_no_users: string
+  report_attempts: (n: number) => string
+  report_weak_title: string
+  report_back: string
 }

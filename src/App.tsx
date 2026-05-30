@@ -1,5 +1,9 @@
 import { useState, useCallback } from 'react'
-import type { Mode, Screen } from './types'
+import type { Screen } from './types'
+
+// Read once on load — never changes during a session.
+// Teachers share the URL with ?report=on; children use the plain URL.
+const reportEnabled = new URLSearchParams(window.location.search).get('report') === 'on'
 import { LanguageProvider, useLanguage } from './hooks/useLanguage'
 import { BackgroundDeco } from './components/BackgroundDeco'
 import { LanguageBar } from './components/LanguageBar'
@@ -8,6 +12,7 @@ import { GameScreen } from './screens/GameScreen'
 import { ResultsScreen } from './screens/ResultsScreen'
 import { LeaderboardScreen } from './screens/LeaderboardScreen'
 import { useGame } from './hooks/useGame'
+import type { StartConfig } from './hooks/useGame'
 import { loadPlayerName } from './lib/storage/playerName'
 
 function AppInner() {
@@ -18,11 +23,10 @@ function AppInner() {
   const game = useGame(playerName, tr.praise)
 
   const handleStart = useCallback(
-    (tables: number[], mode: Mode) => {
-      // Pick up the latest saved name before starting
+    (config: StartConfig) => {
       const name = loadPlayerName()
       setPlayerName(name)
-      game.start(tables, mode)
+      game.start(config)
       setScreen('game')
     },
     [game],
@@ -32,10 +36,6 @@ function AppInner() {
     game.quit()
     setScreen('setup')
   }, [game])
-
-  const handleFinish = useCallback(() => {
-    setScreen('results')
-  }, [])
 
   // Auto-transition to results when game finishes
   if (game.phase === 'finished' && screen === 'game') {
@@ -67,29 +67,19 @@ function AppInner() {
           <ResultsScreen
             result={game.result}
             titleKey={game.resultsTitleKey}
-            onReplay={() => {
-              if (game.result) {
-                handleStart(
-                  // re-use tables from last game (stored in game.result context via mode only)
-                  // SetupScreen will handle fresh selection; here we just return to setup
-                  [],
-                  'free',
-                )
-              }
-              setScreen('setup')
-            }}
+            onReplay={() => setScreen('setup')}
             onMenu={() => setScreen('setup')}
             onLeaderboard={() => setScreen('leaderboard')}
           />
         )}
 
         {screen === 'leaderboard' && (
-          <LeaderboardScreen onBack={() => setScreen('setup')} />
+          <LeaderboardScreen
+            onBack={() => setScreen('setup')}
+            reportEnabled={reportEnabled}
+          />
         )}
       </div>
-
-      {/* Silence unused handleFinish — used as future hook */}
-      <span className="hidden" aria-hidden>{String(handleFinish)}</span>
     </div>
   )
 }

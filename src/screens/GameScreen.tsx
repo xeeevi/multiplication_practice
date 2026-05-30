@@ -121,7 +121,12 @@ export function GameScreen({ game, onQuit }: Props) {
         {/* Question */}
         <div className="mb-5 font-sans text-[3.2em] font-black text-school-text">
           {q.a}{' '}
-          <span className="text-school-coral">×</span>{' '}
+          <span className={
+            q.operation === '+' ? 'text-school-green' :
+            q.operation === '−' ? 'text-school-coral' :
+            q.operation === '÷' ? 'text-school-blue'  :
+            'text-school-coral'
+          }>{q.operation}</span>{' '}
           {q.b}{' '}
           <span className="text-school-orange">=</span>{' '}
           ?
