@@ -1,2 +1,24 @@
-CLAUDE.md
+# Dependencies
+node_modules/
 
+# Build output
+dist/
+coverage/
+
+# Vite / TypeScript cache
+.vite/
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+
+# Env files
+.env
+.env.local
+.env.*.local
