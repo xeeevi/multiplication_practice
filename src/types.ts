@@ -8,7 +8,7 @@ export type Mode = 'free' | '5' | '10' | '20'
 
 export type Screen = 'setup' | 'game' | 'results' | 'leaderboard'
 
-export type Operation = '+' | '-' | '÷'
+export type Operation = '×' | '+' | '-' | '÷'
 
 export type GameType = 'mult' | 'ops'
 

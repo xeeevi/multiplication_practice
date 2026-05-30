@@ -102,6 +102,16 @@ describe('generateOps', () => {
     qs.forEach((q) => expect(q.weight).toBe(1))
   })
 
+  it('includes multiplication questions when × is selected', () => {
+    const qs = generateOps(['×'], EMPTY, makeRng(5))
+    expect(qs).toHaveLength(20)
+    qs.forEach((q) => {
+      expect(q.operation).toBe('×')
+      expect(q.answer).toBe(q.a * q.b)
+      expect(q.key).toMatch(/^\d+x\d+$/)
+    })
+  })
+
   it('boosts a frequently-failed fact to appear more than an unseen fact', () => {
     const failedKey = '7+8'  // a,b ∈ [1,10] — valid in the pool
     const stats: UserStats = { [failedKey]: { attempts: 5, errors: 5 } }

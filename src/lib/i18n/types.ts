@@ -63,9 +63,11 @@ export interface Translations {
   game_tab_ops: string
   // Operations game setup
   ops_q: string
+  op_mult: string
   op_add: string
   op_sub: string
   op_div: string
+  op_mult_hint: string
   op_add_hint: string
   op_sub_hint: string
   op_div_hint: string

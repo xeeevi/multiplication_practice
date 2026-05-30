@@ -26,7 +26,7 @@ export function SetupScreen({ onStart, onLeaderboard }: Props) {
   const [name, setName]         = useState(() => loadPlayerName())
   const [gameTab, setGameTab]   = useState<GameType>('mult')
   const [tables, setTables]     = useState<Set<number>>(new Set())
-  const [ops, setOps]           = useState<Set<Operation>>(new Set(['+', '-', '÷']))
+  const [ops, setOps]           = useState<Set<Operation>>(new Set(['×', '+', '-', '÷']))
   const [mode, setMode]         = useState<Mode | null>(null)
 
   const canStart =
@@ -78,9 +78,10 @@ export function SetupScreen({ onStart, onLeaderboard }: Props) {
   const btnUnselected = 'border-school-border text-school-text hover:border-school-orange'
 
   const opConfig: Array<{ op: Operation; label: string; hint: string; symbol: string }> = [
-    { op: '+', label: tr.op_add, hint: tr.op_add_hint, symbol: '+' },
-    { op: '-', label: tr.op_sub, hint: tr.op_sub_hint, symbol: '−' },
-    { op: '÷', label: tr.op_div, hint: tr.op_div_hint, symbol: '÷' },
+    { op: '×', label: tr.op_mult, hint: tr.op_mult_hint, symbol: '×' },
+    { op: '+', label: tr.op_add,  hint: tr.op_add_hint,  symbol: '+' },
+    { op: '-', label: tr.op_sub,  hint: tr.op_sub_hint,  symbol: '−' },
+    { op: '÷', label: tr.op_div,  hint: tr.op_div_hint,  symbol: '÷' },
   ]
 
   return (
@@ -171,7 +172,7 @@ export function SetupScreen({ onStart, onLeaderboard }: Props) {
       {gameTab === 'ops' && (
         <>
           <p className="mb-3 text-[1.15em] font-bold text-school-text">{tr.ops_q}</p>
-          <div className="mb-4 grid grid-cols-3 gap-3">
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {opConfig.map(({ op, label, hint, symbol }) => (
               <button
                 key={op}

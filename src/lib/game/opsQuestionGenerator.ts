@@ -7,7 +7,15 @@ function buildPool(ops: Operation[], userStats: UserStats): Question[] {
   const pool: Question[] = []
 
   for (const op of ops) {
-    if (op === '+') {
+    if (op === '×') {
+      // All multiplication facts 1–10 × 1–10; keys match the mult generator ("axb")
+      for (let a = 1; a <= 10; a++) {
+        for (let b = 1; b <= 10; b++) {
+          const key = `${a}x${b}`
+          pool.push({ a, b, answer: a * b, key, weight: calcWeight(userStats, key), operation: '×' })
+        }
+      }
+    } else if (op === '+') {
       // a, b ∈ [1,10]; result ≤ 20 (always satisfied since max is 10+10=20)
       for (let a = 1; a <= 10; a++) {
         for (let b = 1; b <= 10; b++) {
