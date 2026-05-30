@@ -77,6 +77,7 @@ const en: Translations = {
   report_no_users: 'Not enough data for any user yet.',
   report_attempts: (n) => `${n} attempts`,
   report_weak_title: 'Weak spots:',
+  report_back: '← List',
 }
 
 export default en

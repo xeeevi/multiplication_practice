@@ -76,4 +76,5 @@ export interface Translations {
   report_no_users: string
   report_attempts: (n: number) => string
   report_weak_title: string
+  report_back: string
 }

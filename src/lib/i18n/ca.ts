@@ -77,6 +77,7 @@ const ca: Translations = {
   report_no_users: 'Encara no hi ha prou dades per a cap usuari.',
   report_attempts: (n) => `${n} intents`,
   report_weak_title: 'Punts febles:',
+  report_back: '← Llista',
 }
 
 export default ca

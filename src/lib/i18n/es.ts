@@ -77,6 +77,7 @@ const es: Translations = {
   report_no_users: 'Todavía no hay suficientes datos para ningún usuario.',
   report_attempts: (n) => `${n} intentos`,
   report_weak_title: 'Puntos débiles:',
+  report_back: '← Lista',
 }
 
 export default es

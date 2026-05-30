@@ -1,5 +1,9 @@
 import { useState, useCallback } from 'react'
 import type { Screen } from './types'
+
+// Read once on load — never changes during a session.
+// Teachers share the URL with ?report=on; children use the plain URL.
+const reportEnabled = new URLSearchParams(window.location.search).get('report') === 'on'
 import { LanguageProvider, useLanguage } from './hooks/useLanguage'
 import { BackgroundDeco } from './components/BackgroundDeco'
 import { LanguageBar } from './components/LanguageBar'
@@ -70,7 +74,10 @@ function AppInner() {
         )}
 
         {screen === 'leaderboard' && (
-          <LeaderboardScreen onBack={() => setScreen('setup')} />
+          <LeaderboardScreen
+            onBack={() => setScreen('setup')}
+            reportEnabled={reportEnabled}
+          />
         )}
       </div>
     </div>
