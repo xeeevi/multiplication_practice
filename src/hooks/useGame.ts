@@ -2,6 +2,7 @@ import { useReducer, useEffect, useRef, useCallback } from 'react'
 import type { Mode, Question, GameResult, GameType, Operation } from '../types'
 import { generate } from '../lib/game/questionGenerator'
 import { generateOps } from '../lib/game/opsQuestionGenerator'
+import { generateDivGraphic } from '../lib/game/divGraphicGenerator'
 import { calcPoints, getResultsTitleKey } from '../lib/game/scoring'
 import { MODE_SECONDS, STORAGE_KEYS } from '../lib/game/constants'
 import { saveErrorStat, getErrorStats } from '../lib/storage/errorStats'
@@ -26,6 +27,8 @@ export interface FeedbackInfo {
 interface GameState {
   phase: GamePhase
   gameType: GameType
+  divLevel: 1 | null
+  divAid: boolean
   mode: Mode
   tables: number[]
   questions: Question[]
@@ -45,7 +48,7 @@ interface GameState {
 // ---------------------------------------------------------------------------
 
 type Action =
-  | { type: 'START'; gameType: GameType; tables: number[]; mode: Mode; questions: Question[] }
+  | { type: 'START'; gameType: GameType; divLevel: 1 | null; divAid: boolean; tables: number[]; mode: Mode; questions: Question[] }
   | { type: 'SUBMIT_CORRECT'; points: number; feedback: FeedbackInfo }
   | { type: 'SUBMIT_WRONG'; feedback: FeedbackInfo }
   | { type: 'TIMEOUT'; feedback: FeedbackInfo }
@@ -61,6 +64,8 @@ type Action =
 const INITIAL_STATE: GameState = {
   phase: 'idle',
   gameType: 'mult',
+  divLevel: null,
+  divAid: false,
   mode: 'free',
   tables: [],
   questions: [],
@@ -86,6 +91,8 @@ function reducer(state: GameState, action: Action): GameState {
         ...INITIAL_STATE,
         phase: 'answering',
         gameType: action.gameType,
+        divLevel: action.divLevel,
+        divAid: action.divAid,
         mode: action.mode,
         tables: action.tables,
         questions: action.questions,
@@ -155,15 +162,17 @@ const FEEDBACK_WRONG_DELAY = 1500
 
 export type StartConfig =
   | { type: 'mult'; tables: number[]; mode: Mode }
-  | { type: 'ops'; operations: Operation[]; mode: Mode }
+  | { type: 'ops'; operations: Operation[]; mode: Mode; divAid?: boolean; tables?: number[] }
+  | { type: 'divg'; mode: Mode }
 
 export function useGame(playerName: string, praise: string[]) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Storage keys depend on which game is active
-  const errKey = state.gameType === 'ops' ? STORAGE_KEYS.opsErrors : STORAGE_KEYS.errors
-  const scoreKey = state.gameType === 'ops' ? STORAGE_KEYS.opsScores : STORAGE_KEYS.scores
+  // divg reuses the ops stores so ÷ facts are aggregated together in the report
+  const isOpsLike = state.gameType === 'ops' || state.gameType === 'divg'
+  const errKey   = isOpsLike ? STORAGE_KEYS.opsErrors : STORAGE_KEYS.errors
+  const scoreKey = isOpsLike ? STORAGE_KEYS.opsScores : STORAGE_KEYS.scores
 
   // ── Timer ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -247,17 +256,26 @@ export function useGame(playerName: string, praise: string[]) {
 
   const start = useCallback(
     (config: StartConfig) => {
-      const userStats =
-        config.type === 'ops'
-          ? getErrorStats(playerName, STORAGE_KEYS.opsErrors)
-          : getErrorStats(playerName)
-      const questions =
-        config.type === 'ops'
-          ? generateOps(config.operations, userStats)
-          : generate(config.tables, userStats)
+      const isOpsLike = config.type === 'ops' || config.type === 'divg'
+      const userStats = isOpsLike
+        ? getErrorStats(playerName, STORAGE_KEYS.opsErrors)
+        : getErrorStats(playerName)
+
+      let questions: Question[]
+
+      if (config.type === 'divg') {
+        questions = generateDivGraphic(userStats)
+      } else if (config.type === 'ops') {
+        questions = generateOps(config.operations, userStats, Math.random, config.tables)
+      } else {
+        questions = generate(config.tables, userStats)
+      }
+
       dispatch({
         type: 'START',
         gameType: config.type,
+        divLevel: config.type === 'divg' ? 1 : null,
+        divAid: config.type === 'ops' ? (config.divAid ?? false) : false,
         tables: config.type === 'mult' ? config.tables : [],
         mode: config.mode,
         questions,
@@ -295,6 +313,35 @@ export function useGame(playerName: string, praise: string[]) {
     [state.phase, state.questions, state.questionIndex, state.streak, state.mode, playerName, praise, errKey],
   )
 
+  const submitDivision = useCallback(
+    (quotient: number, remainder: number) => {
+      if (state.phase !== 'answering') return
+      const q = state.questions[state.questionIndex]
+      if (!q) return
+      const correct = quotient === q.answer && remainder === (q.remainder ?? 0)
+      saveErrorStat(playerName, q.key, correct, errKey)
+      if (correct) {
+        const points = calcPoints(state.streak, state.mode)
+        const p = praise[Math.floor(Math.random() * praise.length)] ?? '🎉'
+        dispatch({
+          type: 'SUBMIT_CORRECT',
+          points,
+          feedback: { correct: true, message: `${p} (+${points})`, pointsAwarded: points },
+        })
+      } else {
+        dispatch({
+          type: 'SUBMIT_WRONG',
+          feedback: {
+            correct: false,
+            message: `${q.a} ÷ ${q.b} = ${q.answer} R ${q.remainder ?? 0}`,
+            pointsAwarded: 0,
+          },
+        })
+      }
+    },
+    [state.phase, state.questions, state.questionIndex, state.streak, state.mode, playerName, praise, errKey],
+  )
+
   const quit = useCallback(() => dispatch({ type: 'QUIT' }), [])
 
   const currentQuestion = state.questions[state.questionIndex] ?? null
@@ -306,6 +353,8 @@ export function useGame(playerName: string, praise: string[]) {
   return {
     phase: state.phase,
     gameType: state.gameType,
+    divLevel: state.divLevel,
+    divAid: state.divAid,
     mode: state.mode,
     score: state.score,
     streak: state.streak,
@@ -321,6 +370,7 @@ export function useGame(playerName: string, praise: string[]) {
     progressPct,
     start,
     submit,
+    submitDivision,
     quit,
   }
 }

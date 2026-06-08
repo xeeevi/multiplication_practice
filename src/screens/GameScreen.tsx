@@ -3,6 +3,9 @@ import { useLanguage } from '../hooks/useLanguage'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { NumberPad } from '../components/NumberPad'
 import { ProgressBar } from '../components/ProgressBar'
+import { DivDistribute } from '../components/DivDistribute'
+import { DivStatic } from './DivStatic'
+import { NumberBlocks } from '../components/NumberBlocks'
 import type { useGame } from '../hooks/useGame'
 import { TOTAL_QUESTIONS } from '../lib/game/constants'
 
@@ -41,8 +44,10 @@ export function GameScreen({ game, onQuit }: Props) {
     }
   }, [game.feedback])
 
-  // Global Enter key
+  // Global Enter key — skip for divg and for ops-division (those handle Enter internally)
   useEffect(() => {
+    if (game.gameType === 'divg') return
+    if (game.gameType === 'ops' && q?.operation === '÷') return
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Enter') handleSubmit()
     }
@@ -112,62 +117,113 @@ export function GameScreen({ game, onQuit }: Props) {
         )}
       />
 
-      {/* Question card */}
-      <div
-        ref={cardRef}
-        className="relative mb-3.5 overflow-hidden rounded-[28px] bg-school-card
-                   px-5 pb-6 pt-8 text-center shadow-[0_6px_0_#e0d5c8]"
-      >
-        {/* Question */}
-        <div className="mb-5 font-sans text-[3.2em] font-black text-school-text">
-          {q.a}{' '}
-          <span className={
-            q.operation === '+' ? 'text-school-green' :
-            q.operation === '−' ? 'text-school-coral' :
-            q.operation === '÷' ? 'text-school-blue'  :
-            'text-school-coral'
-          }>{q.operation}</span>{' '}
-          {q.b}{' '}
-          <span className="text-school-orange">=</span>{' '}
-          ?
+      {/* Graphical division — Level 1 interactive drag */}
+      {game.gameType === 'divg' && (
+        <div className="mb-3.5 rounded-[28px] bg-school-card px-4 pb-5 pt-5
+                        shadow-[0_6px_0_#e0d5c8]">
+          <DivDistribute
+            question={q}
+            questionIndex={game.questionIndex}
+            onSubmit={game.submitDivision}
+            isBusy={isBusy}
+            feedback={game.feedback}
+          />
         </div>
+      )}
 
-        {/* Answer input — always controlled by padValue so numpad + keyboard share one source */}
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          readOnly={isCoarse}
-          value={padValue}
-          className={inputClass}
-          autoComplete="off"
-          onChange={(e) => {
-            const v = e.target.value.replace(/\D/g, '').slice(0, 4)
-            setPadValue(v)
-          }}
-        />
+      {/* Classic division with quotient + remainder (Level 2 / ops-÷) */}
+      {game.gameType === 'ops' && q.operation === '÷' && (
+        <div className="mb-3.5 rounded-[28px] bg-school-card px-5 pb-6 pt-6
+                        shadow-[0_6px_0_#e0d5c8]">
+          <DivStatic
+            question={q}
+            questionIndex={game.questionIndex}
+            onSubmit={game.submitDivision}
+            isBusy={isBusy}
+            feedback={game.feedback}
+            showVisual={game.divAid}
+          />
+        </div>
+      )}
 
-        {/* Feedback */}
+      {/* Standard numeric question card (mult / ops non-÷) */}
+      {game.gameType !== 'divg' && !(game.gameType === 'ops' && q.operation === '÷') && (
         <div
-          className={[
-            'mt-3 min-h-[1.5em] text-[1.15em] font-bold',
-            game.feedback?.correct === true  ? 'text-school-green' :
-            game.feedback?.correct === false ? 'text-school-coral' :
-            'text-school-text',
-          ].join(' ')}
+          ref={cardRef}
+          className="relative mb-3.5 overflow-hidden rounded-[28px] bg-school-card
+                     px-5 pb-6 pt-8 text-center shadow-[0_6px_0_#e0d5c8]"
         >
-          {game.feedback?.message ?? ' '}
-        </div>
+          {/* Question */}
+          <div className="mb-5 font-sans text-[3.2em] font-black text-school-text">
+            {q.a}{' '}
+            <span className={
+              q.operation === '+' ? 'text-school-green' :
+              q.operation === '−' ? 'text-school-coral' :
+              q.operation === '÷' ? 'text-school-blue' :
+              'text-school-coral'
+            }>{q.operation}</span>{' '}
+            {q.b}{' '}
+            <span className="text-school-orange">=</span>{' '}
+            ?
+          </div>
 
-        {/* Number pad */}
-        <NumberPad
-          value={padValue}
-          onChange={handlePadChange}
-          onSubmit={handleSubmit}
-          disabled={isBusy}
-        />
-      </div>
+          {/* Visual aid — bars/crosses/bags for ÷ questions when enabled */}
+          {game.divAid && q.operation === '÷' && (
+            <div className="mb-4 rounded-[14px] bg-school-card2 px-3 py-3">
+              <div className="mb-2 flex justify-center">
+                <NumberBlocks n={q.a} />
+              </div>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {Array.from({ length: q.b }, (_, i) => (
+                  <div
+                    key={i}
+                    className="flex h-[44px] w-[36px] items-end justify-center rounded-[8px]
+                               border-2 border-dashed border-school-blue bg-[#eef6ff] pb-1 text-lg"
+                  >
+                    🎒
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Answer input */}
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            readOnly={isCoarse}
+            value={padValue}
+            className={inputClass}
+            autoComplete="off"
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+              setPadValue(v)
+            }}
+          />
+
+          {/* Feedback */}
+          <div
+            className={[
+              'mt-3 min-h-[1.5em] text-[1.15em] font-bold',
+              game.feedback?.correct === true  ? 'text-school-green' :
+              game.feedback?.correct === false ? 'text-school-coral' :
+              'text-school-text',
+            ].join(' ')}
+          >
+            {game.feedback?.message ?? ' '}
+          </div>
+
+          {/* Number pad */}
+          <NumberPad
+            value={padValue}
+            onChange={handlePadChange}
+            onSubmit={handleSubmit}
+            disabled={isBusy}
+          />
+        </div>
+      )}
 
       {/* Quit */}
       <button

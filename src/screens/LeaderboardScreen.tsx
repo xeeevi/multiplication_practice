@@ -142,8 +142,8 @@ export function LeaderboardScreen({ onBack, reportEnabled }: Props) {
 
       {/* View tabs */}
       <div className="mb-4 flex gap-2">
-        {tabBtn('mult', tr.game_tab_mult)}
-        {tabBtn('ops',  tr.game_tab_ops)}
+        {tabBtn('mult', tr.op_mult)}
+        {tabBtn('ops',  tr.mode_tab_mixed)}
         {reportEnabled && tabBtn('report', tr.lb_tab_report)}
       </div>
 

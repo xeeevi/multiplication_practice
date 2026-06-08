@@ -10,7 +10,7 @@ export type Screen = 'setup' | 'game' | 'results' | 'leaderboard'
 
 export type Operation = '×' | '+' | '-' | '÷'
 
-export type GameType = 'mult' | 'ops'
+export type GameType = 'mult' | 'ops' | 'divg'
 
 /** A single question with pre-computed adaptive weight. */
 export interface Question {
@@ -23,6 +23,8 @@ export interface Question {
   weight: number
   /** Symbol to display between operands: '×', '+', '−', '÷' */
   operation: string
+  /** Integer remainder — only present for divg (graphical division) questions. */
+  remainder?: number
 }
 
 /** One saved high-score entry (persisted to localStorage). */

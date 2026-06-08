@@ -58,10 +58,9 @@ export interface Translations {
   clear_confirm: string
   default_name: string
   question_x_of_y: (x: number, total: number) => string
-  // Game-type tab switcher
-  game_tab_mult: string
-  game_tab_ops: string
-  // Operations game setup
+  // Top-mode strip
+  mode_tab_mixed: string
+  // Operations / mixed setup
   ops_q: string
   op_mult: string
   op_add: string
@@ -77,4 +76,22 @@ export interface Translations {
   report_attempts: (n: number) => string
   report_weak_title: string
   report_back: string
+  // Graphical division levels
+  div_level_q: string
+  div_level1: string
+  div_level1_hint: string
+  div_level2: string
+  div_level2_hint: string
+  div_visual_aid: string
+  div_quotient: string
+  div_remainder: string
+  div_pool_label: string
+  div_pool_empty: string
+  div_break_bar: string
+  div_break_bar_btn: string
+  div_make_bar: string
+  div_regroup_hint: string
+  div_unequal_bags: string
+  div_too_many_left: string
+  div_instruction: string
 }

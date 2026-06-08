@@ -41,12 +41,15 @@ describe('generateOps', () => {
     }
   })
 
-  it('all division results are whole numbers', () => {
+  it('all division results have correct quotient and remainder', () => {
     for (let seed = 0; seed < 10; seed++) {
       const qs = generateOps(['÷'], EMPTY, makeRng(seed))
       qs.forEach((q) => {
-        expect(q.answer).toBe(Math.floor(q.answer))
-        expect(q.a).toBe(q.b * q.answer)
+        expect(q.answer).toBe(Math.floor(q.a / q.b))
+        expect(q.remainder).toBe(q.a % q.b)
+        expect(q.b).toBeGreaterThanOrEqual(2)
+        expect(q.answer).toBeGreaterThanOrEqual(1)
+        expect(q.a).toBeLessThanOrEqual(99)
       })
     }
   })
@@ -110,6 +113,27 @@ describe('generateOps', () => {
       expect(q.answer).toBe(q.a * q.b)
       expect(q.key).toMatch(/^\d+x\d+$/)
     })
+  })
+
+  it('restricts × to specified tables when tables param is provided', () => {
+    const tables = [2, 5]
+    const qs = generateOps(['×'], EMPTY, makeRng(9), tables)
+    expect(qs).toHaveLength(20)
+    qs.forEach((q) => {
+      expect(q.operation).toBe('×')
+      expect(tables).toContain(q.a)
+    })
+  })
+
+  it('× table restriction does not affect other ops in a mixed round', () => {
+    const tables = [3]
+    const qs = generateOps(['+', '×'], EMPTY, makeRng(11), tables)
+    const multQs = qs.filter(q => q.operation === '×')
+    multQs.forEach(q => expect(q.a).toBe(3))
+    const addQs = qs.filter(q => q.operation === '+')
+    // addition questions should use full 1–10 range
+    const aValues = new Set(addQs.map(q => q.a))
+    expect(aValues.size).toBeGreaterThan(1)
   })
 
   it('boosts a frequently-failed fact to appear more than an unseen fact', () => {

@@ -3,13 +3,14 @@ import { TOTAL_QUESTIONS, MAX_REPEAT, MIN_GAP } from './constants'
 import { calcWeight } from './questionGenerator'
 
 /** Build the candidate pool for all selected operations. */
-function buildPool(ops: Operation[], userStats: UserStats): Question[] {
+function buildPool(ops: Operation[], userStats: UserStats, tables?: number[]): Question[] {
   const pool: Question[] = []
 
   for (const op of ops) {
     if (op === '×') {
-      // All multiplication facts 1–10 × 1–10; keys match the mult generator ("axb")
-      for (let a = 1; a <= 10; a++) {
+      // Multiplication facts; restrict to `tables` when provided (mirrors generate())
+      const rows = tables && tables.length > 0 ? tables : Array.from({ length: 10 }, (_, i) => i + 1)
+      for (const a of rows) {
         for (let b = 1; b <= 10; b++) {
           const key = `${a}x${b}`
           pool.push({ a, b, answer: a * b, key, weight: calcWeight(userStats, key), operation: '×' })
@@ -32,20 +33,24 @@ function buildPool(ops: Operation[], userStats: UserStats): Question[] {
         }
       }
     } else if (op === '÷') {
-      // Derived from multiplication facts: (divisor × quotient) ÷ divisor = quotient
-      // divisor, quotient ∈ [1,10] — always whole number results
-      for (let divisor = 1; divisor <= 10; divisor++) {
-        for (let quotient = 1; quotient <= 10; quotient++) {
-          const dividend = divisor * quotient
-          const key = `${dividend}÷${divisor}`
-          pool.push({
-            a: dividend,
-            b: divisor,
-            answer: quotient,
-            key,
-            weight: calcWeight(userStats, key),
-            operation: '÷',
-          })
+      // divisor ∈ [2,10], quotient ∈ [1,9], remainder ∈ [0, divisor-1]
+      // dividend = divisor×quotient + remainder, capped at 99
+      for (let divisor = 2; divisor <= 10; divisor++) {
+        for (let quotient = 1; quotient <= 9; quotient++) {
+          for (let remainder = 0; remainder < divisor; remainder++) {
+            const dividend = divisor * quotient + remainder
+            if (dividend > 99) continue
+            const key = `${dividend}÷${divisor}`
+            pool.push({
+              a: dividend,
+              b: divisor,
+              answer: quotient,
+              remainder,
+              key,
+              weight: calcWeight(userStats, key),
+              operation: '÷',
+            })
+          }
         }
       }
     }
@@ -58,16 +63,18 @@ function buildPool(ops: Operation[], userStats: UserStats): Question[] {
  * Generate a 20-question list for the operations game.
  * Uses the same adaptive weighting and cap/gap/spacing rules as `generate()`.
  *
- * @param ops       - Selected operations ('+', '-', '÷').
+ * @param ops       - Selected operations ('+', '-', '÷', '×').
  * @param userStats - Per-user error stats for weighting.
  * @param rng       - Injectable RNG for deterministic tests.
+ * @param tables    - Optional table restriction for '×' (e.g. [3,4,5]). Omit for all 1–10.
  */
 export function generateOps(
   ops: Operation[],
   userStats: UserStats,
   rng: () => number = Math.random,
+  tables?: number[],
 ): Question[] {
-  const pool = buildPool(ops, userStats)
+  const pool = buildPool(ops, userStats, tables)
 
   function weightedPick(candidates: Question[]): Question {
     const total = candidates.reduce((sum, c) => sum + c.weight, 0)
