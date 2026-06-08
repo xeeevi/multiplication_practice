@@ -49,7 +49,7 @@ export function SetupScreen({ onStart, onLeaderboard }: Props) {
 
   // ── Table helpers ─────────────────────────────────────────────────────────
   function toggleTable(n: number) {
-    setTables(prev => { const s = new Set(prev); s.has(n) ? s.delete(n) : s.add(n); return s })
+    setTables(prev => { const s = new Set(prev); if (s.has(n)) s.delete(n); else s.add(n); return s })
   }
   function selectAll()  { setTables(new Set(ALL_TABLES)) }
   function selectNone() { setTables(new Set()) }
@@ -62,7 +62,7 @@ export function SetupScreen({ onStart, onLeaderboard }: Props) {
 
   // ── Mixed op toggle ───────────────────────────────────────────────────────
   function toggleMixedOp(op: Operation) {
-    setMixedOps(prev => { const s = new Set(prev); s.has(op) ? s.delete(op) : s.add(op); return s })
+    setMixedOps(prev => { const s = new Set(prev); if (s.has(op)) s.delete(op); else s.add(op); return s })
   }
 
   // ── Start ──────────────────────────────────────────────────────────────────
